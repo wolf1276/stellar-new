@@ -226,11 +226,17 @@ testnet demo project.
 
 ## Deployment
 
+Live at **https://stellar4.vercel.app**.
+
 Deploy as a standard Next.js app (e.g. Vercel: `vercel deploy`). No server-side
 secrets are required since all wallet/chain interaction happens client-side.
 Set `NEXT_PUBLIC_VOTING_CONTRACT_ID` (and optionally
 `NEXT_PUBLIC_SOROBAN_RPC_URL`) as environment variables on the host if you've
 deployed your own contract instance instead of using the one below.
+
+`.vercelignore` excludes `node_modules`, `.next`, and `contracts/target` (Rust
+build artifacts) from the upload — without it, `vercel deploy` uploads
+gigabytes of build output the remote builder regenerates anyway.
 
 Route-level `error.tsx`/`not-found.tsx` boundaries and `@vercel/analytics` /
 `@vercel/speed-insights` are already in place (see Monitoring & analytics
