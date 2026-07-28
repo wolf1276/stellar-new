@@ -39,7 +39,11 @@ export default function ProposalsPage() {
 
       {error && <Alert variant="destructive">{error}</Alert>}
 
-      {!loading && proposals.length === 0 && (
+      {loading && proposals.length === 0 && (
+        <Card className="text-sm text-muted">Loading proposals...</Card>
+      )}
+
+      {!loading && !error && proposals.length === 0 && (
         <Card className="text-sm text-muted">No proposals yet. Create the first one.</Card>
       )}
 
