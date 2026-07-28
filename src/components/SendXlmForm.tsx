@@ -14,7 +14,12 @@ export default function SendXlmForm({ sourceAddress }: { sourceAddress: string }
   const [formError, setFormError] = useState<string | null>(null);
   const { status, hash, error, send, reset } = useTransaction();
 
-  const pending = status === "pending";
+  const pending = status === "preparing" || status === "awaiting-signature" || status === "submitting";
+  const phaseLabel: Record<string, string> = {
+    preparing: "Preparing...",
+    "awaiting-signature": "Awaiting signature...",
+    submitting: "Submitting...",
+  };
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -38,7 +43,7 @@ export default function SendXlmForm({ sourceAddress }: { sourceAddress: string }
 
   return (
     <Card className="flex flex-col gap-3">
-      <span className="text-xs text-zinc-500">Send XLM</span>
+      <span className="label">Send XLM</span>
       <form onSubmit={onSubmit} className="flex flex-col gap-3">
         <label className="flex flex-col gap-1">
           <span className="text-sm">Recipient address</span>
@@ -70,13 +75,13 @@ export default function SendXlmForm({ sourceAddress }: { sourceAddress: string }
           />
         </label>
         <Button type="submit" disabled={pending} aria-busy={pending}>
-          {pending ? "Sending..." : "Send"}
+          {phaseLabel[status] ?? "Send"}
         </Button>
       </form>
 
       {formError && <Alert variant="destructive">{formError}</Alert>}
-      {status === "error" && error && <Alert variant="destructive">{error}</Alert>}
-      {status === "success" && hash && (
+      {status === "failed" && error && <Alert variant="destructive">{error}</Alert>}
+      {status === "confirmed" && hash && (
         <Alert variant="success" className="flex flex-col gap-1">
           <span>Transaction sent.</span>
           <span className="font-mono text-xs break-all">{hash}</span>

@@ -4,9 +4,9 @@ import { cn } from "@/lib/utils";
 type Variant = "default" | "destructive" | "success";
 
 const variants: Record<Variant, string> = {
-  default: "border-black/10 dark:border-white/10 text-foreground",
-  destructive: "border-red-500/30 bg-red-500/10 text-red-600 dark:text-red-400",
-  success: "border-green-500/30 bg-green-500/10 text-green-700 dark:text-green-400",
+  default: "border-[var(--color-divider)] text-[var(--color-text)]",
+  destructive: "border-[var(--color-danger)] bg-[var(--color-danger-bg)] text-[var(--color-danger)]",
+  success: "border-[var(--color-success)] bg-[color-mix(in_srgb,var(--color-success)_10%,transparent)] text-[var(--color-success)]",
 };
 
 export function Alert({
@@ -18,7 +18,7 @@ export function Alert({
   return (
     <div
       role={role ?? (variant === "destructive" ? "alert" : "status")}
-      className={cn("rounded-lg border px-3 py-2 text-sm", variants[variant], className)}
+      className={cn("border px-3 py-2 text-sm", variants[variant], className)}
       {...props}
     />
   );

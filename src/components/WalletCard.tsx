@@ -18,7 +18,7 @@ export default function WalletCard() {
     return (
       <Card className="flex flex-col items-center gap-4 w-full max-w-sm">
         <Button onClick={connect} disabled={connecting} aria-busy={connecting}>
-          {connecting ? "Connecting..." : "Connect Freighter Wallet"}
+          {connecting ? "Connecting..." : "Connect Wallet"}
         </Button>
         {error && <Alert variant="destructive">{error}</Alert>}
       </Card>
@@ -30,7 +30,7 @@ export default function WalletCard() {
       <Card className="flex items-center justify-between gap-3">
         <div className="flex flex-col gap-1 min-w-0">
           <span className="font-mono text-sm break-all">{truncate(wallet.address)}</span>
-          <span className="text-xs text-zinc-500">{wallet.network}</span>
+          <span className="text-xs text-muted">{wallet.network}</span>
         </div>
         <Button variant="outline" onClick={disconnect}>
           Disconnect

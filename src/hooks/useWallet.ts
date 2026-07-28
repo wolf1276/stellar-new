@@ -1,9 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { connectWallet, getAuthorizedState, WalletState } from "@/lib/wallet";
+import { connectWallet, disconnectWallet, getAuthorizedState, WalletState } from "@/lib/wallet";
 
-const STORAGE_KEY = "wallet:connected";
 const POLL_MS = 3000;
 
 export function useWallet() {
@@ -21,7 +20,6 @@ export function useWallet() {
     try {
       const state = await connectWallet();
       setWallet(state);
-      localStorage.setItem(STORAGE_KEY, "1");
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to connect wallet.");
     } finally {
@@ -32,18 +30,14 @@ export function useWallet() {
   const disconnect = useCallback(() => {
     setWallet(null);
     setError(null);
-    localStorage.removeItem(STORAGE_KEY);
+    disconnectWallet().catch(() => {});
   }, []);
 
-  // Auto-reconnect on load if the site was previously authorized.
+  // Auto-reconnect on load if a wallet is already selected in the kit.
   useEffect(() => {
-    if (localStorage.getItem(STORAGE_KEY) !== "1") return;
-    getAuthorizedState()
-      .then((state) => {
-        if (state) setWallet(state);
-        else localStorage.removeItem(STORAGE_KEY);
-      })
-      .catch(() => localStorage.removeItem(STORAGE_KEY));
+    getAuthorizedState().then((state) => {
+      if (state) setWallet(state);
+    });
   }, []);
 
   // Detect account switches or network changes in the extension.

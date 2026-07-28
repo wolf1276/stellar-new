@@ -11,8 +11,8 @@ export default function BalanceCard({ address }: { address: string }) {
   return (
     <Card className="flex items-center justify-between gap-3">
       <div className="flex flex-col gap-1">
-        <span className="text-xs text-zinc-500">XLM Balance</span>
-        <span className="text-2xl font-semibold tabular-nums">
+        <span className="label">XLM Balance</span>
+        <span className="stat-n text-2xl tabular-nums">
           {loading && balance === null ? "..." : `${balance ?? "0"} XLM`}
         </span>
       </div>
