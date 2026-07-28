@@ -122,14 +122,25 @@ in `src/lib/voting-contract.ts`.
 ## Environment variables
 
 None required — Horizon/Soroban RPC URLs, network passphrase, and the voting
-contract ID default to Stellar Testnet. To point at a different deployment,
-set:
+contract ID default to Stellar Testnet. See `.env.example`. To point at a
+different deployment, set:
 
 ```bash
 NEXT_PUBLIC_VOTING_CONTRACT_ID=C...
 NEXT_PUBLIC_MEMBERSHIP_CONTRACT_ID=C...   # optional — enables the join-gate
 NEXT_PUBLIC_SOROBAN_RPC_URL=https://soroban-testnet.stellar.org
 ```
+
+## Monitoring & analytics
+
+[`@vercel/analytics`](https://vercel.com/docs/analytics) and
+[`@vercel/speed-insights`](https://vercel.com/docs/speed-insights) are wired
+into `src/app/layout.tsx`. Both are no-ops locally and on non-Vercel hosts;
+once deployed on Vercel, enable Analytics and Speed Insights for the project
+in the dashboard (Project → Analytics / Speed Insights) — no extra
+credentials or code changes needed. Runtime errors are caught by
+`src/app/error.tsx` (route-level) and logged to the console; wire that
+`console.error` to an error-tracking service (e.g. Sentry) if one is added.
 
 ## Folder structure
 
@@ -220,6 +231,11 @@ secrets are required since all wallet/chain interaction happens client-side.
 Set `NEXT_PUBLIC_VOTING_CONTRACT_ID` (and optionally
 `NEXT_PUBLIC_SOROBAN_RPC_URL`) as environment variables on the host if you've
 deployed your own contract instance instead of using the one below.
+
+Route-level `error.tsx`/`not-found.tsx` boundaries and `@vercel/analytics` /
+`@vercel/speed-insights` are already in place (see Monitoring & analytics
+above) — no further setup needed beyond enabling them in the Vercel
+dashboard post-deploy.
 
 ## Wallet flow
 

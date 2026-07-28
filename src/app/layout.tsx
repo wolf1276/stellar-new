@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { Barlow, Barlow_Condensed } from "next/font/google";
+import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import "@/styles/design-system.css";
 import "./globals.css";
 
@@ -32,6 +34,8 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col">
         <main className="flex flex-col flex-1">{children}</main>
+        <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );
