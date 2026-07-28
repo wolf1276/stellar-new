@@ -1,4 +1,5 @@
 #![no_std]
+use membership::MembershipContractClient;
 use soroban_sdk::{
     contract, contracterror, contractevent, contractimpl, contracttype, Address, Env, String, Vec,
 };
@@ -41,6 +42,7 @@ pub enum DataKey {
     ProposalCount,
     Proposal(u32),
     Voted(u32, Address), // (proposal_id, voter) -> VoteChoice
+    MembershipContract,
 }
 
 #[contracterror]
@@ -101,6 +103,14 @@ pub struct GovernanceContract;
 
 #[contractimpl]
 impl GovernanceContract {
+    /// `membership_contract` is a deployed `MembershipContract` instance;
+    /// `vote()` calls it cross-contract to check voter eligibility.
+    pub fn __constructor(env: Env, membership_contract: Address) {
+        env.storage()
+            .instance()
+            .set(&DataKey::MembershipContract, &membership_contract);
+    }
+
     /// Creates a proposal that is votable until `deadline` (unix seconds, must be
     /// strictly in the future by at least `MIN_VOTING_SECONDS`). Returns the new
     /// proposal's id.
@@ -160,8 +170,22 @@ impl GovernanceContract {
 
     /// Casts `choice` on behalf of `voter`. One vote per wallet per proposal;
     /// rejected once the deadline has passed (the proposal is lazily closed).
-    pub fn vote(env: Env, voter: Address, proposal_id: u32, choice: VoteChoice) -> Result<(), Error> {
+    pub fn vote(
+        env: Env,
+        voter: Address,
+        proposal_id: u32,
+        choice: VoteChoice,
+    ) -> Result<(), Error> {
         voter.require_auth();
+
+        let membership_contract: Address = env
+            .storage()
+            .instance()
+            .get(&DataKey::MembershipContract)
+            .expect("membership contract not set");
+        if !MembershipContractClient::new(&env, &membership_contract).is_member(&voter) {
+            return Err(Error::Unauthorized);
+        }
 
         let mut proposal = Self::load_proposal(&env, proposal_id)?;
         let now = env.ledger().timestamp();
@@ -268,7 +292,9 @@ impl GovernanceContract {
     /// Persists Active -> Closed once past the deadline, and emits ProposalClosed.
     /// No-op for proposals that are already Closed/Executed or still active.
     fn close_if_expired(env: &Env, proposal: &mut Proposal) {
-        if proposal.status == ProposalStatus::Active && env.ledger().timestamp() >= proposal.deadline {
+        if proposal.status == ProposalStatus::Active
+            && env.ledger().timestamp() >= proposal.deadline
+        {
             proposal.status = ProposalStatus::Closed;
             env.storage()
                 .persistent()

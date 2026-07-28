@@ -998,6 +998,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "membership"
+version = "0.0.0"
+dependencies = [
+ "soroban-sdk",
+]
+
+[[package]]
 name = "memchr"
 version = "2.8.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1787,6 +1794,7 @@ dependencies = [
 name = "voting"
 version = "0.0.0"
 dependencies = [
+ "membership",
  "soroban-sdk",
 ]
 
