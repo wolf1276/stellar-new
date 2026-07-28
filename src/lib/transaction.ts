@@ -5,7 +5,7 @@ import {
   Asset,
   StrKey,
 } from "@stellar/stellar-sdk";
-import { signTransaction } from "@stellar/freighter-api";
+import { signWithWallet } from "./wallet";
 import { server, NETWORK_PASSPHRASE } from "./stellar";
 
 export function isValidStellarAddress(address: string): boolean {
@@ -17,11 +17,15 @@ export function isValidAmount(amount: string): boolean {
   return Number.isFinite(value) && value > 0;
 }
 
-/** Builds, signs (via Freighter) and submits an XLM payment. Returns the tx hash. */
+/** Fine-grained lifecycle a signed/submitted transaction moves through in the UI. */
+export type TxPhase = "idle" | "preparing" | "awaiting-signature" | "submitting" | "confirmed" | "failed";
+
+/** Builds, signs (via the connected wallet) and submits an XLM payment. Returns the tx hash. */
 export async function sendPayment(
   sourceAddress: string,
   destination: string,
-  amount: string
+  amount: string,
+  onPhase?: (phase: TxPhase) => void
 ): Promise<string> {
   if (!isValidStellarAddress(destination)) {
     throw new Error("Recipient address is not a valid Stellar public key.");
@@ -30,6 +34,7 @@ export async function sendPayment(
     throw new Error("Amount must be a positive number.");
   }
 
+  onPhase?.("preparing");
   const account = await server.loadAccount(sourceAddress);
   const tx = new TransactionBuilder(account, {
     fee: BASE_FEE,
@@ -39,13 +44,13 @@ export async function sendPayment(
     .setTimeout(30)
     .build();
 
-  const { signedTxXdr, error } = await signTransaction(tx.toXDR(), {
-    networkPassphrase: NETWORK_PASSPHRASE,
-  });
-  if (error) throw new Error(error);
+  onPhase?.("awaiting-signature");
+  const signedTxXdr = await signWithWallet(tx.toXDR(), sourceAddress, NETWORK_PASSPHRASE);
 
+  onPhase?.("submitting");
   const signedTx = TransactionBuilder.fromXDR(signedTxXdr, NETWORK_PASSPHRASE);
   const result = await server.submitTransaction(signedTx);
+  onPhase?.("confirmed");
   return result.hash;
 }
 

@@ -15,6 +15,12 @@ export default function NewProposalPage() {
   const router = useRouter();
   const { wallet, connecting, error: walletError, connect } = useWallet();
   const { status, error, submit } = useCreateProposal(wallet?.address ?? null);
+  const pending = status === "preparing" || status === "awaiting-signature" || status === "submitting";
+  const phaseLabel: Record<string, string> = {
+    preparing: "Preparing...",
+    "awaiting-signature": "Awaiting signature...",
+    submitting: "Submitting...",
+  };
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -24,7 +30,7 @@ export default function NewProposalPage() {
     return (
       <Card className="flex flex-col items-center gap-4 w-full max-w-sm">
         <Button onClick={connect} disabled={connecting} aria-busy={connecting}>
-          {connecting ? "Connecting..." : "Connect Freighter Wallet"}
+          {connecting ? "Connecting..." : "Connect Wallet"}
         </Button>
         {walletError && <Alert variant="destructive">{walletError}</Alert>}
       </Card>
@@ -33,7 +39,7 @@ export default function NewProposalPage() {
 
   const hours = Number(durationHours);
   const validDuration = Number.isFinite(hours) && hours >= MIN_VOTING_HOURS;
-  const canSubmit = title.trim() && description.trim() && validDuration && status !== "pending";
+  const canSubmit = title.trim() && description.trim() && validDuration && !pending;
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -47,24 +53,24 @@ export default function NewProposalPage() {
 
   return (
     <Card className="flex flex-col gap-4 w-full max-w-md">
-      <h2 className="text-xl font-semibold">New Proposal</h2>
+      <h2 className="text-2xl">New Proposal</h2>
       <form onSubmit={handleSubmit} className="flex flex-col gap-3">
-        <label className="flex flex-col gap-1 text-sm">
-          Title
+        <label className="flex flex-col gap-1">
+          <span className="label">Title *</span>
           <Input value={title} onChange={(e) => setTitle(e.target.value)} maxLength={120} required />
         </label>
-        <label className="flex flex-col gap-1 text-sm">
-          Description
+        <label className="flex flex-col gap-1">
+          <span className="label">Description *</span>
           <textarea
-            className="w-full rounded-lg border border-black/15 dark:border-white/15 bg-transparent px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-foreground/30 disabled:opacity-40"
+            className="input"
             rows={4}
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             required
           />
         </label>
-        <label className="flex flex-col gap-1 text-sm">
-          Voting duration (hours)
+        <label className="flex flex-col gap-1">
+          <span className="label">Voting duration (hours) *</span>
           <Input
             type="number"
             min={MIN_VOTING_HOURS}
@@ -73,13 +79,21 @@ export default function NewProposalPage() {
             required
           />
           {!validDuration && (
-            <span className="text-xs text-red-500">Must be at least {MIN_VOTING_HOURS} hour.</span>
+            <span className="text-xs" style={{ color: "var(--color-danger)" }}>
+              Must be at least {MIN_VOTING_HOURS} hour.
+            </span>
           )}
         </label>
-        <Button type="submit" disabled={!canSubmit} aria-busy={status === "pending"}>
-          {status === "pending" ? "Submitting..." : "Create Proposal"}
+        <div
+          className="text-xs px-3 py-2"
+          style={{ border: "1px solid #e8d0a8", background: "#faf0d8", color: "#7a5010" }}
+        >
+          ⚠ Submitting creates an on-chain transaction. You will sign with your wallet.
+        </div>
+        <Button type="submit" disabled={!canSubmit} aria-busy={pending}>
+          {phaseLabel[status] ?? "Submit Proposal →"}
         </Button>
-        {error && <Alert variant="destructive">{error}</Alert>}
+        {status === "failed" && error && <Alert variant="destructive">{error}</Alert>}
       </form>
     </Card>
   );

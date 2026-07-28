@@ -18,16 +18,25 @@ export default function ProposalDetailPage({
   const { id } = use(params);
   const proposalId = Number(id);
   const { wallet, connecting, error: walletError, connect } = useWallet();
-  const { proposal, voted, loading, error, txStatus, txHash, castVote, runExecute } = useProposal(
-    wallet?.address ?? null,
-    proposalId
-  );
+  const {
+    proposal,
+    voted,
+    member,
+    requiresMembership,
+    loading,
+    error,
+    txStatus,
+    txHash,
+    castVote,
+    runExecute,
+    join,
+  } = useProposal(wallet?.address ?? null, proposalId);
 
   if (!wallet) {
     return (
       <Card className="flex flex-col items-center gap-4 w-full max-w-sm">
         <Button onClick={connect} disabled={connecting} aria-busy={connecting}>
-          {connecting ? "Connecting..." : "Connect Freighter Wallet"}
+          {connecting ? "Connecting..." : "Connect Wallet"}
         </Button>
         {walletError && <Alert variant="destructive">{walletError}</Alert>}
       </Card>
@@ -35,7 +44,7 @@ export default function ProposalDetailPage({
   }
 
   if (loading && !proposal) {
-    return <p className="text-sm text-zinc-500">Loading proposal...</p>;
+    return <p className="text-sm text-muted">Loading proposal...</p>;
   }
 
   if (!proposal) {
@@ -49,84 +58,116 @@ export default function ProposalDetailPage({
     );
   }
 
-  const now = Date.now() / 1000;
-  const expired = now >= proposal.deadline;
-  const canVote = proposal.status === "Active" && !expired && !voted;
-  const canExecute = expired && proposal.status !== "Executed";
+  const needsToJoin = requiresMembership && !member;
+  const canVote = proposal.status === "Active" && !voted && !needsToJoin;
+  const canExecute = proposal.status === "Closed";
+  const txPending = txStatus === "preparing" || txStatus === "awaiting-signature" || txStatus === "submitting";
+  const txPhaseLabel: Record<string, string> = {
+    preparing: "Preparing...",
+    "awaiting-signature": "Awaiting signature...",
+    submitting: "Submitting...",
+  };
   const totalVotes = proposal.yesVotes + proposal.noVotes;
   const yesPct = totalVotes ? Math.round((proposal.yesVotes / totalVotes) * 100) : 0;
+  const noPct = 100 - yesPct;
 
   return (
-    <Card className="flex flex-col gap-4 w-full max-w-lg">
-      <Link href="/proposals" className="text-sm text-zinc-500 hover:underline">
+    <div className="flex flex-col gap-3 w-full max-w-3xl">
+      <Link href="/proposals" className="text-sm text-muted hover:underline">
         &larr; All proposals
       </Link>
 
-      <div className="flex items-start justify-between gap-2">
-        <h2 className="text-xl font-semibold">{proposal.title}</h2>
-        <StatusBadge status={proposal.status} />
-      </div>
-      <p className="text-sm text-zinc-500 whitespace-pre-wrap">{proposal.description}</p>
-
-      <dl className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-zinc-500">
-        <dt>Creator</dt>
-        <dd className="font-mono truncate">{proposal.creator}</dd>
-        <dt>Created</dt>
-        <dd>{new Date(proposal.createdAt * 1000).toLocaleString()}</dd>
-        <dt>Deadline</dt>
-        <dd>{new Date(proposal.deadline * 1000).toLocaleString()}</dd>
-      </dl>
-
-      <div className="flex flex-col gap-1">
-        <div className="h-2 w-full rounded-full bg-black/10 dark:bg-white/10 overflow-hidden">
-          <div className="h-full bg-green-500" style={{ width: `${yesPct}%` }} />
+      <Card className="grid grid-cols-1 md:grid-cols-[1fr_260px] gap-6 p-0 overflow-hidden">
+        {/* left: content */}
+        <div className="flex flex-col gap-3 p-5 md:border-r border-[var(--color-divider)]">
+          <div className="flex items-center gap-2">
+            <StatusBadge status={proposal.status} />
+            <span className="ml-auto text-xs text-muted">
+              Deadline {new Date(proposal.deadline * 1000).toLocaleString()}
+            </span>
+          </div>
+          <h2 className="text-2xl">{proposal.title}</h2>
+          <div className="text-xs text-muted">
+            Proposed by <span className="font-mono">{proposal.creator}</span> ·{" "}
+            {new Date(proposal.createdAt * 1000).toLocaleDateString()}
+          </div>
+          <hr className="border-[var(--color-divider)]" />
+          <p className="text-sm whitespace-pre-wrap">{proposal.description}</p>
         </div>
-        <div className="flex justify-between text-xs text-zinc-500">
-          <span>{proposal.yesVotes} yes ({yesPct}%)</span>
-          <span>{proposal.noVotes} no</span>
-        </div>
-      </div>
 
-      {voted && <Alert>You&apos;ve already voted on this proposal.</Alert>}
-
-      <div className="flex gap-3">
-        <Button
-          onClick={() => castVote("Yes")}
-          disabled={!canVote || txStatus === "pending"}
-          aria-busy={txStatus === "pending"}
-        >
-          {txStatus === "pending" ? "Voting..." : "Vote Yes"}
-        </Button>
-        <Button
-          variant="outline"
-          onClick={() => castVote("No")}
-          disabled={!canVote || txStatus === "pending"}
-          aria-busy={txStatus === "pending"}
-        >
-          {txStatus === "pending" ? "Voting..." : "Vote No"}
-        </Button>
-      </div>
-
-      {canExecute && (
-        <Button variant="outline" onClick={runExecute} disabled={txStatus === "pending"}>
-          {txStatus === "pending" ? "Executing..." : "Execute Proposal"}
-        </Button>
-      )}
-
-      {error && <Alert variant="destructive">{error}</Alert>}
-      {txStatus === "success" && txHash && (
-        <Alert variant="success">
-          Confirmed.{" "}
-          <a
-            href={stellarExpertTxUrl(txHash)}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="underline"
+        {/* right: vote panel */}
+        <div className="flex flex-col gap-3 p-5 bg-[var(--color-surface)]">
+          <span className="kicker">Cast your vote</span>
+          {voted && <Alert>You&apos;ve already voted on this proposal.</Alert>}
+          {needsToJoin && (
+            <>
+              <Alert>
+                You need to join as a member (a one-time on-chain
+                registration checked cross-contract by the voting contract)
+                before you can vote.
+              </Alert>
+              <Button
+                onClick={join}
+                disabled={txPending}
+                aria-busy={txPending}
+                className="w-full justify-center"
+              >
+                {txPending ? txPhaseLabel[txStatus] : "Join to Vote"}
+              </Button>
+            </>
+          )}
+          <Button
+            onClick={() => castVote("Yes")}
+            disabled={!canVote || txPending}
+            aria-busy={txPending}
+            className="w-full justify-center"
+            style={{ background: "var(--color-success)", borderColor: "var(--color-success)" }}
           >
-            View on Stellar Expert
-          </a>
-        </Alert>
-      )}
-    </Card>
+            {txPending ? txPhaseLabel[txStatus] : "✓ Vote Yes"}
+          </Button>
+          <Button
+            variant="destructive"
+            onClick={() => castVote("No")}
+            disabled={!canVote || txPending}
+            aria-busy={txPending}
+            className="w-full justify-center"
+          >
+            {txPending ? txPhaseLabel[txStatus] : "✕ Vote No"}
+          </Button>
+
+          {canExecute && (
+            <Button variant="outline" onClick={runExecute} disabled={txPending} className="w-full justify-center">
+              {txPending ? txPhaseLabel[txStatus] : "Execute Proposal"}
+            </Button>
+          )}
+
+          <hr className="border-[var(--color-divider)]" />
+          <span className="kicker">Live results</span>
+          <span className="text-xs text-muted">{totalVotes} votes cast</span>
+          <div className="progress" style={{ height: 8 }}>
+            <span style={{ width: `${yesPct}%` }} />
+          </div>
+          <div className="flex justify-between text-xs text-muted">
+            <span>Yes {yesPct}%</span>
+            <span>No {noPct}%</span>
+          </div>
+
+          {txStatus === "failed" && error && <Alert variant="destructive">{error}</Alert>}
+          {txStatus === "confirmed" && txHash && (
+            <Alert variant="success" className="flex flex-col gap-1">
+              <span>Confirmed.</span>
+              <a
+                href={stellarExpertTxUrl(txHash)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline"
+              >
+                View on Stellar Expert
+              </a>
+            </Alert>
+          )}
+        </div>
+      </Card>
+    </div>
   );
 }

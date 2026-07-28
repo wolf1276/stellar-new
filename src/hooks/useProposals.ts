@@ -11,31 +11,43 @@ import {
   Proposal,
   VoteChoice,
 } from "@/lib/voting-contract";
+import { isMember, joinMembership, MEMBERSHIP_CONTRACT_ID } from "@/lib/membership-contract";
+import type { TxPhase } from "@/lib/transaction";
 
-type TxStatus = "idle" | "pending" | "success" | "error";
+const LIVE_REFRESH_MS = 6000;
 
-/** Fetches and refreshes the full proposal list for the connected address. */
+/** Fetches and refreshes the full proposal list for the connected address, polling for on-chain updates. */
 export function useProposalList(address: string | null) {
   const [proposals, setProposals] = useState<Proposal[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const refresh = useCallback(async () => {
-    if (!address) return;
-    setLoading(true);
-    setError(null);
-    try {
-      setProposals(await getAllProposals(address));
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Failed to load proposals.");
-    } finally {
-      setLoading(false);
-    }
-  }, [address]);
+  const refresh = useCallback(
+    async (silent = false) => {
+      if (!address) return;
+      if (!silent) setLoading(true);
+      setError(null);
+      try {
+        setProposals(await getAllProposals(address));
+      } catch (e) {
+        setError(e instanceof Error ? e.message : "Failed to load proposals.");
+      } finally {
+        if (!silent) setLoading(false);
+      }
+    },
+    [address]
+  );
 
   useEffect(() => {
-    refresh();
+    void Promise.resolve().then(() => refresh());
   }, [refresh]);
+
+  // Live updates: poll the contract so new/changed proposals show up without a manual refresh.
+  useEffect(() => {
+    if (!address) return;
+    const id = setInterval(() => refresh(true), LIVE_REFRESH_MS);
+    return () => clearInterval(id);
+  }, [address, refresh]);
 
   return { proposals, loading, error, refresh };
 }
@@ -44,46 +56,57 @@ export function useProposalList(address: string | null) {
 export function useProposal(address: string | null, proposalId: number) {
   const [proposal, setProposal] = useState<Proposal | null>(null);
   const [voted, setVoted] = useState(false);
+  const [member, setMember] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [txStatus, setTxStatus] = useState<TxStatus>("idle");
+  const [txStatus, setTxStatus] = useState<TxPhase>("idle");
   const [txHash, setTxHash] = useState<string | null>(null);
 
-  const refresh = useCallback(async () => {
-    if (!address) return;
-    setLoading(true);
-    setError(null);
-    try {
-      const [p, v] = await Promise.all([
-        getProposal(address, proposalId),
-        hasVoted(address, proposalId),
-      ]);
-      setProposal(p);
-      setVoted(v);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Failed to load proposal.");
-    } finally {
-      setLoading(false);
-    }
-  }, [address, proposalId]);
+  const refresh = useCallback(
+    async (silent = false) => {
+      if (!address) return;
+      if (!silent) setLoading(true);
+      setError(null);
+      try {
+        const [p, v, m] = await Promise.all([
+          getProposal(address, proposalId),
+          hasVoted(address, proposalId),
+          isMember(address),
+        ]);
+        setProposal(p);
+        setVoted(v);
+        setMember(m);
+      } catch (e) {
+        setError(e instanceof Error ? e.message : "Failed to load proposal.");
+      } finally {
+        if (!silent) setLoading(false);
+      }
+    },
+    [address, proposalId]
+  );
 
   useEffect(() => {
-    refresh();
+    void Promise.resolve().then(() => refresh());
   }, [refresh]);
+
+  // Live updates: poll for vote-count/status changes made by other wallets.
+  useEffect(() => {
+    if (!address) return;
+    const id = setInterval(() => refresh(true), LIVE_REFRESH_MS);
+    return () => clearInterval(id);
+  }, [address, refresh]);
 
   const castVote = useCallback(
     async (choice: VoteChoice) => {
       if (!address) return;
-      setTxStatus("pending");
       setError(null);
       try {
-        const hash = await vote(address, proposalId, choice);
+        const hash = await vote(address, proposalId, choice, setTxStatus);
         setTxHash(hash);
-        setTxStatus("success");
-        await refresh();
+        await refresh(true);
       } catch (e) {
         setError(e instanceof Error ? e.message : "Vote failed.");
-        setTxStatus("error");
+        setTxStatus("failed");
       }
     },
     [address, proposalId, refresh]
@@ -91,40 +114,62 @@ export function useProposal(address: string | null, proposalId: number) {
 
   const runExecute = useCallback(async () => {
     if (!address) return;
-    setTxStatus("pending");
     setError(null);
     try {
-      const hash = await executeProposal(address, proposalId);
+      const hash = await executeProposal(address, proposalId, setTxStatus);
       setTxHash(hash);
-      setTxStatus("success");
-      await refresh();
+      await refresh(true);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Execution failed.");
-      setTxStatus("error");
+      setTxStatus("failed");
     }
   }, [address, proposalId, refresh]);
 
-  return { proposal, voted, loading, error, txStatus, txHash, castVote, runExecute, refresh };
+  const join = useCallback(async () => {
+    if (!address) return;
+    setError(null);
+    try {
+      const hash = await joinMembership(address, setTxStatus);
+      setTxHash(hash);
+      await refresh(true);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to join.");
+      setTxStatus("failed");
+    }
+  }, [address, refresh]);
+
+  return {
+    proposal,
+    voted,
+    member,
+    requiresMembership: MEMBERSHIP_CONTRACT_ID !== null,
+    loading,
+    error,
+    txStatus,
+    txHash,
+    castVote,
+    runExecute,
+    join,
+    refresh,
+  };
 }
 
 export function useCreateProposal(address: string | null) {
-  const [status, setStatus] = useState<TxStatus>("idle");
+  const [status, setStatus] = useState<TxPhase>("idle");
   const [error, setError] = useState<string | null>(null);
   const [proposalId, setProposalId] = useState<number | null>(null);
 
   const submit = useCallback(
     async (title: string, description: string, deadline: Date) => {
       if (!address) return null;
-      setStatus("pending");
       setError(null);
       try {
-        const id = await createProposal(address, title, description, deadline);
+        const id = await createProposal(address, title, description, deadline, setStatus);
         setProposalId(id);
-        setStatus("success");
         return id;
       } catch (e) {
         setError(e instanceof Error ? e.message : "Failed to create proposal.");
-        setStatus("error");
+        setStatus("failed");
         return null;
       }
     },

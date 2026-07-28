@@ -16,7 +16,7 @@ export default function ProposalsPage() {
     return (
       <Card className="flex flex-col items-center gap-4 w-full max-w-sm">
         <Button onClick={connect} disabled={connecting} aria-busy={connecting}>
-          {connecting ? "Connecting..." : "Connect Freighter Wallet"}
+          {connecting ? "Connecting..." : "Connect Wallet"}
         </Button>
         {walletError && <Alert variant="destructive">{walletError}</Alert>}
       </Card>
@@ -26,13 +26,13 @@ export default function ProposalsPage() {
   return (
     <div className="flex flex-col gap-4 w-full max-w-2xl">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-semibold">Proposals</h2>
+        <h2 className="text-2xl">Proposals</h2>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={refresh} disabled={loading}>
+          <Button variant="outline" onClick={() => refresh()} disabled={loading}>
             {loading ? "Refreshing..." : "Refresh"}
           </Button>
           <Link href="/proposals/new">
-            <Button>New Proposal</Button>
+            <Button>+ New Proposal</Button>
           </Link>
         </div>
       </div>
@@ -40,28 +40,37 @@ export default function ProposalsPage() {
       {error && <Alert variant="destructive">{error}</Alert>}
 
       {!loading && proposals.length === 0 && (
-        <Card className="text-sm text-zinc-500">No proposals yet. Create the first one.</Card>
+        <Card className="text-sm text-muted">No proposals yet. Create the first one.</Card>
       )}
 
       <ul className="flex flex-col gap-3">
-        {proposals.map((p) => (
-          <li key={p.id}>
-            <Link href={`/proposals/${p.id}`}>
-              <Card className="flex flex-col gap-2 hover:border-black/25 dark:hover:border-white/25 transition-colors">
-                <div className="flex items-center justify-between gap-2">
-                  <span className="font-medium">{p.title}</span>
-                  <StatusBadge status={p.status} />
-                </div>
-                <p className="text-sm text-zinc-500 line-clamp-2">{p.description}</p>
-                <div className="flex items-center gap-4 text-xs text-zinc-500">
-                  <span>{p.yesVotes} yes</span>
-                  <span>{p.noVotes} no</span>
-                  <span>Deadline: {new Date(p.deadline * 1000).toLocaleString()}</span>
-                </div>
-              </Card>
-            </Link>
-          </li>
-        ))}
+        {proposals.map((p) => {
+          const total = p.yesVotes + p.noVotes;
+          const yesPct = total ? Math.round((p.yesVotes / total) * 100) : 0;
+          return (
+            <li key={p.id}>
+              <Link href={`/proposals/${p.id}`}>
+                <Card className="flex flex-col gap-2 hover:border-[var(--color-accent)] transition-colors">
+                  <div className="flex items-center gap-2">
+                    <StatusBadge status={p.status} />
+                    <span className="font-medium flex-1 truncate">{p.title}</span>
+                    <span className="text-xs text-muted whitespace-nowrap">
+                      {new Date(p.deadline * 1000).toLocaleDateString()}
+                    </span>
+                  </div>
+                  <p className="text-sm text-muted line-clamp-2">{p.description}</p>
+                  <div className="progress">
+                    <span style={{ width: `${yesPct}%` }} />
+                  </div>
+                  <div className="flex justify-between text-xs text-muted">
+                    <span>Yes {yesPct}% ({p.yesVotes})</span>
+                    <span>No {p.noVotes}</span>
+                  </div>
+                </Card>
+              </Link>
+            </li>
+          );
+        })}
       </ul>
     </div>
   );

@@ -7,12 +7,13 @@ import {
   scValToNative,
   xdr,
 } from "@stellar/stellar-sdk";
-import { signTransaction } from "@stellar/freighter-api";
+import { signWithWallet } from "./wallet";
 import { NETWORK_PASSPHRASE } from "./stellar";
+import type { TxPhase } from "./transaction";
 
 export const VOTING_CONTRACT_ID =
   process.env.NEXT_PUBLIC_VOTING_CONTRACT_ID ??
-  "CBGP7MWNXH77INSVUU6GHE2WTVXGYSKOWUP42MEKTFAXM2PVJZA27M5A";
+  "CADQY6OJA3PZOPWIHHTJ7T67LFJJPLDDFE2UYDPJWPQVXONXM7JRSDIU";
 const RPC_URL =
   process.env.NEXT_PUBLIC_SOROBAN_RPC_URL ?? "https://soroban-testnet.stellar.org";
 
@@ -46,7 +47,7 @@ const CONTRACT_ERRORS: Record<number, string> = {
   8: "Voting is still active; cannot execute yet.",
 };
 
-function decodeContractError(raw: unknown): Error {
+export function decodeContractError(raw: unknown): Error {
   const message = String(raw);
   const match = message.match(/Error\(Contract, #(\d+)\)/);
   if (match) {
@@ -97,8 +98,14 @@ async function simulateCall(
   return scValToNative(sim.result!.retval);
 }
 
-/** Builds, simulates, signs (via Freighter), and submits a contract-invoking transaction. */
-async function invoke(address: string, method: string, args: xdr.ScVal[]) {
+/** Builds, simulates, signs (via the connected wallet), and submits a contract-invoking transaction. */
+async function invoke(
+  address: string,
+  method: string,
+  args: xdr.ScVal[],
+  onPhase?: (phase: TxPhase) => void
+) {
+  onPhase?.("preparing");
   const source = await server.getAccount(address);
   const tx = new TransactionBuilder(source, {
     fee: BASE_FEE,
@@ -112,17 +119,19 @@ async function invoke(address: string, method: string, args: xdr.ScVal[]) {
   try {
     prepared = await server.prepareTransaction(tx);
   } catch (e) {
+    onPhase?.("failed");
     throw decodeContractError(e);
   }
 
-  const { signedTxXdr } = await signTransaction(prepared.toXDR(), {
-    networkPassphrase: NETWORK_PASSPHRASE,
-  });
+  onPhase?.("awaiting-signature");
+  const signedTxXdr = await signWithWallet(prepared.toXDR(), address, NETWORK_PASSPHRASE);
 
+  onPhase?.("submitting");
   const signedTx = TransactionBuilder.fromXDR(signedTxXdr, NETWORK_PASSPHRASE);
   const sendResult = await server.sendTransaction(signedTx);
 
   if (sendResult.status === "ERROR") {
+    onPhase?.("failed");
     throw decodeContractError(sendResult.errorResult);
   }
 
@@ -133,9 +142,11 @@ async function invoke(address: string, method: string, args: xdr.ScVal[]) {
   }
 
   if (getResult.status !== "SUCCESS") {
+    onPhase?.("failed");
     throw new Error(`Transaction failed with status: ${getResult.status}`);
   }
 
+  onPhase?.("confirmed");
   return sendResult.hash;
 }
 
@@ -169,8 +180,10 @@ export async function createProposal(
   address: string,
   title: string,
   description: string,
-  deadline: Date
+  deadline: Date,
+  onPhase?: (phase: TxPhase) => void
 ): Promise<number> {
+  onPhase?.("preparing");
   const source = await server.getAccount(address);
   const deadlineSecs = Math.floor(deadline.getTime() / 1000);
   const tx = new TransactionBuilder(source, {
@@ -193,15 +206,20 @@ export async function createProposal(
   try {
     prepared = await server.prepareTransaction(tx);
   } catch (e) {
+    onPhase?.("failed");
     throw decodeContractError(e);
   }
 
-  const { signedTxXdr } = await signTransaction(prepared.toXDR(), {
-    networkPassphrase: NETWORK_PASSPHRASE,
-  });
+  onPhase?.("awaiting-signature");
+  const signedTxXdr = await signWithWallet(prepared.toXDR(), address, NETWORK_PASSPHRASE);
+
+  onPhase?.("submitting");
   const signedTx = TransactionBuilder.fromXDR(signedTxXdr, NETWORK_PASSPHRASE);
   const sendResult = await server.sendTransaction(signedTx);
-  if (sendResult.status === "ERROR") throw decodeContractError(sendResult.errorResult);
+  if (sendResult.status === "ERROR") {
+    onPhase?.("failed");
+    throw decodeContractError(sendResult.errorResult);
+  }
 
   let getResult = await server.getTransaction(sendResult.hash);
   while (getResult.status === "NOT_FOUND") {
@@ -209,9 +227,11 @@ export async function createProposal(
     getResult = await server.getTransaction(sendResult.hash);
   }
   if (getResult.status !== "SUCCESS") {
+    onPhase?.("failed");
     throw new Error(`Transaction failed with status: ${getResult.status}`);
   }
-  if (getResult.status === "SUCCESS" && "returnValue" in getResult && getResult.returnValue) {
+  onPhase?.("confirmed");
+  if ("returnValue" in getResult && getResult.returnValue) {
     return Number(scValToNative(getResult.returnValue));
   }
   return -1;
@@ -220,15 +240,25 @@ export async function createProposal(
 export async function vote(
   address: string,
   proposalId: number,
-  choice: VoteChoice
+  choice: VoteChoice,
+  onPhase?: (phase: TxPhase) => void
 ): Promise<string> {
-  return invoke(address, "vote", [
-    nativeToScVal(address, { type: "address" }),
-    nativeToScVal(proposalId, { type: "u32" }),
-    xdr.ScVal.scvVec([xdr.ScVal.scvSymbol(choice)]),
-  ]);
+  return invoke(
+    address,
+    "vote",
+    [
+      nativeToScVal(address, { type: "address" }),
+      nativeToScVal(proposalId, { type: "u32" }),
+      xdr.ScVal.scvVec([xdr.ScVal.scvSymbol(choice)]),
+    ],
+    onPhase
+  );
 }
 
-export async function executeProposal(address: string, proposalId: number): Promise<string> {
-  return invoke(address, "execute_proposal", [nativeToScVal(proposalId, { type: "u32" })]);
+export async function executeProposal(
+  address: string,
+  proposalId: number,
+  onPhase?: (phase: TxPhase) => void
+): Promise<string> {
+  return invoke(address, "execute_proposal", [nativeToScVal(proposalId, { type: "u32" })], onPhase);
 }
