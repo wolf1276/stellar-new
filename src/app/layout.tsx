@@ -4,6 +4,7 @@ import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import "@/styles/design-system.css";
 import "./globals.css";
+import { WalletProvider } from "@/hooks/useWallet";
 
 const barlow = Barlow({
   variable: "--font-barlow",
@@ -33,7 +34,9 @@ export default function RootLayout({
       className={`${barlow.variable} ${barlowCondensed.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
-        <main className="flex flex-col flex-1">{children}</main>
+        <WalletProvider>
+          <main className="flex flex-col flex-1">{children}</main>
+        </WalletProvider>
         <Analytics />
         <SpeedInsights />
       </body>

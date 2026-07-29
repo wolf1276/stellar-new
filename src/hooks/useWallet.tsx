@@ -1,11 +1,21 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
 import { connectWallet, disconnectWallet, getAuthorizedState, WalletState } from "@/lib/wallet";
 
 const POLL_MS = 3000;
 
-export function useWallet() {
+interface WalletContextValue {
+  wallet: WalletState | null;
+  connecting: boolean;
+  error: string | null;
+  connect: () => Promise<void>;
+  disconnect: () => void;
+}
+
+const WalletContext = createContext<WalletContextValue | null>(null);
+
+function useWalletState(): WalletContextValue {
   const [wallet, setWallet] = useState<WalletState | null>(null);
   const [connecting, setConnecting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -57,4 +67,15 @@ export function useWallet() {
   }, [wallet, disconnect]);
 
   return { wallet, connecting, error, connect, disconnect };
+}
+
+export function WalletProvider({ children }: { children: React.ReactNode }) {
+  const value = useWalletState();
+  return <WalletContext.Provider value={value}>{children}</WalletContext.Provider>;
+}
+
+export function useWallet(): WalletContextValue {
+  const ctx = useContext(WalletContext);
+  if (!ctx) throw new Error("useWallet must be used within a WalletProvider");
+  return ctx;
 }
