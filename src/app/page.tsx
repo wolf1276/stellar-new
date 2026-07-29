@@ -39,33 +39,6 @@ export default function Home() {
       </video>
 
       <div className="relative z-10 flex flex-col h-full">
-        {/* Nav */}
-        <nav className="w-full">
-          <div className="flex items-center justify-between px-8 py-6 max-w-[1280px] mx-auto w-full">
-            <Link
-              href="/"
-              className="text-white"
-              style={{ fontFamily: "var(--font-display), serif", fontSize: "1.875rem", letterSpacing: "-0.02em" }}
-            >
-              Voxis<sup className="text-[0.65em]">®</sup>
-            </Link>
-
-            <div className="hidden md:flex items-center gap-8">
-              <span className="text-sm text-white">Home</span>
-              <Link href="/proposals" className="text-sm text-white/60 hover:text-white transition-colors">
-                Proposals
-              </Link>
-              <span className="text-sm text-white/60">Governance</span>
-              <span className="text-sm text-white/60">About</span>
-              <span className="text-sm text-white/60">How It Works</span>
-            </div>
-
-            <Link href="/proposals" className="hero-glass rounded-full px-6 py-2.5 text-sm font-medium text-white">
-              Launch App
-            </Link>
-          </div>
-        </nav>
-
         {/* Hero */}
         <section className="flex-1 flex flex-col items-center justify-center text-center px-6 pt-9 pb-20">
           <h1

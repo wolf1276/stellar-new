@@ -24,17 +24,14 @@ export default function ProposalsPage() {
   }
 
   return (
-    <div className="flex flex-col gap-4 w-full max-w-2xl">
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl">Proposals</h2>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={() => refresh()} disabled={loading}>
-            {loading ? "Refreshing..." : "Refresh"}
-          </Button>
-          <Link href="/proposals/new">
-            <Button>+ New Proposal</Button>
-          </Link>
-        </div>
+    <div className="flex flex-col gap-6 w-full max-w-2xl">
+      <div className="flex items-center justify-end gap-3 rise-in">
+        <Button variant="outline" onClick={() => refresh()} disabled={loading}>
+          {loading ? "Refreshing..." : "Refresh"}
+        </Button>
+        <Link href="/proposals/new">
+          <Button>+ New Proposal</Button>
+        </Link>
       </div>
 
       {error && <Alert variant="destructive">{error}</Alert>}
@@ -47,28 +44,28 @@ export default function ProposalsPage() {
         <Card className="text-sm text-muted">No proposals yet. Create the first one.</Card>
       )}
 
-      <ul className="flex flex-col gap-3">
-        {proposals.map((p) => {
+      <ul className="flex flex-col gap-5">
+        {proposals.map((p, i) => {
           const total = p.yesVotes + p.noVotes;
           const yesPct = total ? Math.round((p.yesVotes / total) * 100) : 0;
           return (
-            <li key={p.id}>
+            <li key={p.id} className="rise-in" style={{ animationDelay: `${120 + i * 60}ms` }}>
               <Link href={`/proposals/${p.id}`}>
-                <Card className="flex flex-col gap-2 hover:border-[var(--color-accent)] transition-colors">
-                  <div className="flex items-center gap-2">
+                <Card className="flex flex-col gap-4">
+                  <div className="flex items-center gap-3">
                     <StatusBadge status={p.status} />
-                    <span className="font-medium flex-1 truncate">{p.title}</span>
+                    <span className="font-semibold text-lg flex-1 truncate">{p.title}</span>
                     <span className="text-xs text-muted whitespace-nowrap">
                       {new Date(p.deadline * 1000).toLocaleDateString()}
                     </span>
                   </div>
-                  <p className="text-sm text-muted line-clamp-2">{p.description}</p>
+                  <p className="text-sm text-muted leading-relaxed line-clamp-2">{p.description}</p>
                   <div className="progress">
                     <span style={{ width: `${yesPct}%` }} />
                   </div>
-                  <div className="flex justify-between text-xs text-muted">
-                    <span>Yes {yesPct}% ({p.yesVotes})</span>
-                    <span>No {p.noVotes}</span>
+                  <div className="flex justify-between text-xs pt-1">
+                    <span style={{ color: "var(--color-success)" }}>Yes {yesPct}% ({p.yesVotes})</span>
+                    <span style={{ color: "var(--color-danger)" }}>No {p.noVotes}</span>
                   </div>
                 </Card>
               </Link>
