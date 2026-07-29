@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -16,9 +17,19 @@ function truncate(address: string) {
 export default function Nav() {
   const pathname = usePathname();
   const { wallet, connecting, connect, disconnect } = useWallet();
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 8);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  if (pathname === "/") return null;
 
   return (
-    <nav className="nav">
+    <nav className={cn("nav", scrolled && "nav-scrolled")}>
       <Link href="/" className="nav-brand flex items-center gap-2">
         <Image src="/logo.png" alt="" width={24} height={24} priority />
         Altair
@@ -27,7 +38,7 @@ export default function Nav() {
         <Link
           key={l.href}
           href={l.href}
-          className={cn(pathname.startsWith(l.href) && "text-[var(--color-accent)] font-medium")}
+          className={cn("nav-link", pathname.startsWith(l.href) && "nav-link-active")}
         >
           {l.label}
         </Link>
