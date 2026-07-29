@@ -3,14 +3,18 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { useWallet } from "@/hooks/useWallet";
+import { Button } from "@/components/ui/button";
 
-const links = [
-  { href: "/proposals", label: "Proposals" },
-  { href: "/wallet", label: "Wallet" },
-];
+const links = [{ href: "/proposals", label: "Proposals" }];
+
+function truncate(address: string) {
+  return `${address.slice(0, 4)}...${address.slice(-4)}`;
+}
 
 export default function Nav() {
   const pathname = usePathname();
+  const { wallet, connecting, connect, disconnect } = useWallet();
 
   return (
     <nav className="nav">
@@ -26,6 +30,18 @@ export default function Nav() {
           {l.label}
         </Link>
       ))}
+      {wallet ? (
+        <div className="flex items-center gap-2">
+          <span className="addr">{truncate(wallet.address)}</span>
+          <Button variant="outline" onClick={disconnect}>
+            Disconnect
+          </Button>
+        </div>
+      ) : (
+        <Button onClick={connect} disabled={connecting} aria-busy={connecting}>
+          {connecting ? "Connecting..." : "Connect Wallet"}
+        </Button>
+      )}
     </nav>
   );
 }
