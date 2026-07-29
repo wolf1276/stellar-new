@@ -19,7 +19,7 @@ const barlowCondensed = Barlow_Condensed({
 });
 
 export const metadata: Metadata = {
-  title: "Stellar Vote",
+  title: "Altair",
   description: "Decentralized governance voting on the Stellar network.",
 };
 

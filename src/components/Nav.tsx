@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
@@ -18,8 +19,9 @@ export default function Nav() {
 
   return (
     <nav className="nav">
-      <Link href="/" className="nav-brand">
-        ⬟ Stellar Vote
+      <Link href="/" className="nav-brand flex items-center gap-2">
+        <Image src="/logo.png" alt="" width={24} height={24} priority />
+        Altair
       </Link>
       {links.map((l) => (
         <Link
