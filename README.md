@@ -6,14 +6,13 @@
 
 **On-chain governance voting for Stellar, with wallet-native UX.**
 
-[![CI](https://github.com/wolf1276/stellar-new/actions/workflows/ci.yml/badge.svg)](https://github.com/wolf1276/stellar-new/actions/workflows/ci.yml)
 [![Live Demo](https://img.shields.io/badge/demo-stellar4.vercel.app-000?logo=vercel)](https://stellar4.vercel.app)
 [![Next.js](https://img.shields.io/badge/Next.js-16-black?logo=next.js)](https://nextjs.org)
 [![React](https://img.shields.io/badge/React-19-149ECA?logo=react&logoColor=white)](https://react.dev)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org)
 [![Stellar](https://img.shields.io/badge/Stellar-Testnet-000000?logo=stellar&logoColor=white)](https://stellar.org)
 [![Soroban](https://img.shields.io/badge/Soroban-Smart%20Contracts-7D00FF)](https://soroban.stellar.org)
-[![License](https://img.shields.io/badge/license-TODO-lightgrey)](#license)
+[![License](https://img.shields.io/badge/license-unlicensed-lightgrey)](#license)
 
 [Live Demo](https://stellar4.vercel.app) · [Deployed Contract](#deployed-contracts-testnet) · [Architecture](#architecture) · [Contributing](#contributing)
 
@@ -22,7 +21,7 @@
 > **A note on accuracy:** every claim in this README is backed by code in this
 > repo — contract source, hooks, or tests are linked inline. Anything that
 > isn't verifiable yet (screenshots, license, live usage stats) is explicitly
-> marked `TODO` rather than invented.
+> called out rather than invented.
 
 ---
 
@@ -236,7 +235,7 @@ a wallet is connected.
 |---|---|
 | **Website** | https://stellar4.vercel.app |
 | **Repository** | this repo |
-| **Video demo** | 🚧 TODO |
+| **Video demo** | Not recorded yet |
 | **Voting contract** | `CADQY6OJA3PZOPWIHHTJ7T67LFJJPLDDFE2UYDPJWPQVXONXM7JRSDIU` ([explorer](https://stellar.expert/explorer/testnet/contract/CADQY6OJA3PZOPWIHHTJ7T67LFJJPLDDFE2UYDPJWPQVXONXM7JRSDIU)) |
 | **Example tx — `create_proposal`** | [`210388aa...`](https://stellar.expert/explorer/testnet/tx/210388aa03524f08885e9d0e4b256b1589df97f6e2d894bc5870204d400e546b) |
 | **Example tx — `vote`** | [`0b42c7cc...`](https://stellar.expert/explorer/testnet/tx/0b42c7ccbeecfcbe54241f4e7ca1c066aebb5c574c51045afaf598547f38b89b) |
@@ -403,42 +402,24 @@ Failed**.
 
 ## Example Transactions
 
-> Two real Testnet transactions are confirmed against the deployed contract
-> (below). The remainder are placeholder rows — replace with real hashes as
-> more activity accrues, or generate them yourself following the
-> [Demo instructions](#demo-instructions).
+> Real Testnet transactions confirmed against the deployed contract. More
+> will be added here as activity accrues — see
+> [Demo instructions](#demo-instructions) to generate your own.
 
 | # | Operation | Proposal ID | Status | Explorer |
 |---|---|---|---|---|
 | 1 | `create_proposal` | — | ✅ Confirmed | [`210388aa...`](https://stellar.expert/explorer/testnet/tx/210388aa03524f08885e9d0e4b256b1589df97f6e2d894bc5870204d400e546b) |
 | 2 | `vote` | — | ✅ Confirmed | [`0b42c7cc...`](https://stellar.expert/explorer/testnet/tx/0b42c7ccbeecfcbe54241f4e7ca1c066aebb5c574c51045afaf598547f38b89b) |
-| 3 | `vote` | TODO | 🚧 placeholder | TODO |
-| 4 | `create_proposal` | TODO | 🚧 placeholder | TODO |
-| 5 | `execute_proposal` | TODO | 🚧 placeholder | TODO |
-| 6 | `join` (membership) | — | 🚧 placeholder | TODO |
-| 7 | `vote` | TODO | 🚧 placeholder | TODO |
-| 8 | Send XLM | — | 🚧 placeholder | TODO |
-| 9 | `vote` | TODO | 🚧 placeholder | TODO |
-| 10 | `execute_proposal` | TODO | 🚧 placeholder | TODO |
 
 ---
 
 ## Project Stats
 
-> 🚧 **Demo data — no analytics backend is wired up to populate this
-> automatically.** `@vercel/analytics`/`@vercel/speed-insights` track page
-> performance, not these on-chain metrics. To make this section live, index
-> `ProposalCreated`/`VoteCast`/`ProposalExecuted`/`MemberJoined` events from
-> Soroban RPC.
-
-| Metric | Value |
-|---|---|
-| Registered members | TODO |
-| Total proposals | TODO |
-| Active proposals | TODO |
-| Executed proposals | TODO |
-| Total votes cast | TODO |
-| Participation rate | TODO |
+No analytics backend is wired up to populate a live stats dashboard —
+`@vercel/analytics`/`@vercel/speed-insights` track page performance, not
+on-chain metrics like member/proposal/vote counts. To make this section
+live, index `ProposalCreated`/`VoteCast`/`ProposalExecuted`/`MemberJoined`
+events from Soroban RPC and query them here.
 
 ---
 
@@ -561,8 +542,8 @@ testnet account, so they can't be automated headlessly:
 
 ## License
 
-🚧 **TODO** — no `LICENSE` file is currently committed to this repository.
-Add one (e.g. MIT) before treating this as open source.
+No `LICENSE` file is currently committed to this repository — all rights
+reserved by default until one is added.
 
 ---
 
