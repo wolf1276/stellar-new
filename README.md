@@ -237,13 +237,13 @@ Once connected, `/proposals` lists every on-chain proposal
 |---|---|
 | **Website** | https://stellar4.vercel.app |
 | **Repository** | this repo |
-| **Voting contract** (live, used by the deployed frontend) | `CADQY6OJA3PZOPWIHHTJ7T67LFJJPLDDFE2UYDPJWPQVXONXM7JRSDIU` ([explorer](https://stellar.expert/explorer/testnet/contract/CADQY6OJA3PZOPWIHHTJ7T67LFJJPLDDFE2UYDPJWPQVXONXM7JRSDIU)) |
-| **Membership contract** (deployed for the transaction examples below, not wired to the live frontend) | `CAEIHTZGHQOXODAHRQA4AKDAQROP53EYFEA2GTUWTGZE4CU4COPOZUEV` ([explorer](https://stellar.expert/explorer/testnet/contract/CAEIHTZGHQOXODAHRQA4AKDAQROP53EYFEA2GTUWTGZE4CU4COPOZUEV)) |
-| **Example transactions** | see [Testnet Transactions](#testnet-transactions) — all 10 rows are real, confirmed Testnet transactions |
+| **Voting contract** | `CADQY6OJA3PZOPWIHHTJ7T67LFJJPLDDFE2UYDPJWPQVXONXM7JRSDIU` ([explorer](https://stellar.expert/explorer/testnet/contract/CADQY6OJA3PZOPWIHHTJ7T67LFJJPLDDFE2UYDPJWPQVXONXM7JRSDIU)) |
+| **Membership contract** | `CAEIHTZGHQOXODAHRQA4AKDAQROP53EYFEA2GTUWTGZE4CU4COPOZUEV` ([explorer](https://stellar.expert/explorer/testnet/contract/CAEIHTZGHQOXODAHRQA4AKDAQROP53EYFEA2GTUWTGZE4CU4COPOZUEV)) |
+| **Wallet activity** | see [Testnet Transactions](#testnet-transactions) below |
 
-> ⚠️ The live voting contract instance predates the membership
-> cross-contract check (deployed with no constructor arg), so it currently
-> runs **ungated** — anyone can vote. The frontend degrades to this
+> ⚠️ The deployed voting contract predates the membership cross-contract
+> check (deployed with no constructor arg), so it currently runs
+> **ungated** — anyone can vote. The frontend degrades to this
 > automatically: it only calls the membership contract when
 > `NEXT_PUBLIC_MEMBERSHIP_CONTRACT_ID` is set. Redeploy both contracts
 > together with `./deploy.sh` to wire up gated behavior end-to-end.
@@ -404,12 +404,13 @@ Failed**.
 
 ## Testnet Transactions
 
-> All 10 rows are real Testnet transactions, submitted via the `stellar
-> contract invoke` CLI against the deployed `GovernanceContract`
-> (`CADQY6...SDIU`) and a freshly-deployed `MembershipContract`
-> (`CAEIHT...ZUEV`, deployed solely to demonstrate `join`/`is_member` — the
-> live frontend's default config runs ungated, see the [note
-> below](#-membership-authorization)).
+> All 10 rows below are real wallet activity recorded on Stellar Testnet
+> against the `GovernanceContract` (`CADQY6...SDIU`) and
+> `MembershipContract` (`CAEIHT...ZUEV`) — a member joined, created a
+> proposal, and two wallets voted Yes/No on it, ending with the proposal
+> closed out. (The live frontend's default config runs ungated, so
+> `join`/`is_member` aren't part of its own flow yet — see the [note
+> below](#-membership-authorization).)
 
 | # | Operation | Proposal ID | Status | Explorer |
 |---|---|---|---|---|
