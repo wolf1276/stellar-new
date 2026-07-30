@@ -221,6 +221,14 @@ Both `/proposals` and `/proposals/[id]` render this **Connect Wallet** gate
 before showing any content — proposal data and voting are only fetched once
 a wallet is connected.
 
+### Proposal List
+
+<img src="./public/screenshots/proposals-list.png" alt="Connected proposals list with live vote tallies" width="720" />
+
+Once connected, `/proposals` lists every on-chain proposal
+(`useProposalList`), each with a live Yes/No progress bar computed from
+`yes_votes`/`no_votes` and a status pill (Active/Closed/Executed).
+
 ---
 
 ## Live Demo
