@@ -236,15 +236,16 @@ a wallet is connected.
 | **Website** | https://stellar4.vercel.app |
 | **Repository** | this repo |
 | **Video demo** | Not recorded yet |
-| **Voting contract** | `CADQY6OJA3PZOPWIHHTJ7T67LFJJPLDDFE2UYDPJWPQVXONXM7JRSDIU` ([explorer](https://stellar.expert/explorer/testnet/contract/CADQY6OJA3PZOPWIHHTJ7T67LFJJPLDDFE2UYDPJWPQVXONXM7JRSDIU)) |
-| **Example tx — `create_proposal`** | [`210388aa...`](https://stellar.expert/explorer/testnet/tx/210388aa03524f08885e9d0e4b256b1589df97f6e2d894bc5870204d400e546b) |
-| **Example tx — `vote`** | [`0b42c7cc...`](https://stellar.expert/explorer/testnet/tx/0b42c7ccbeecfcbe54241f4e7ca1c066aebb5c574c51045afaf598547f38b89b) |
+| **Voting contract** (live, used by the deployed frontend) | `CADQY6OJA3PZOPWIHHTJ7T67LFJJPLDDFE2UYDPJWPQVXONXM7JRSDIU` ([explorer](https://stellar.expert/explorer/testnet/contract/CADQY6OJA3PZOPWIHHTJ7T67LFJJPLDDFE2UYDPJWPQVXONXM7JRSDIU)) |
+| **Membership contract** (deployed for the transaction examples below, not wired to the live frontend) | `CAEIHTZGHQOXODAHRQA4AKDAQROP53EYFEA2GTUWTGZE4CU4COPOZUEV` ([explorer](https://stellar.expert/explorer/testnet/contract/CAEIHTZGHQOXODAHRQA4AKDAQROP53EYFEA2GTUWTGZE4CU4COPOZUEV)) |
+| **Example transactions** | see [Example Transactions](#example-transactions) — all 10 rows are real, confirmed Testnet transactions |
 
-> ⚠️ This contract instance predates the membership cross-contract check
-> (deployed with no constructor arg), so it currently runs **ungated**
-> — anyone can vote. The frontend degrades to this automatically: it only
-> calls the membership contract when `NEXT_PUBLIC_MEMBERSHIP_CONTRACT_ID` is
-> set. Redeploy both contracts with `./deploy.sh` to get gated behavior.
+> ⚠️ The live voting contract instance predates the membership
+> cross-contract check (deployed with no constructor arg), so it currently
+> runs **ungated** — anyone can vote. The frontend degrades to this
+> automatically: it only calls the membership contract when
+> `NEXT_PUBLIC_MEMBERSHIP_CONTRACT_ID` is set. Redeploy both contracts
+> together with `./deploy.sh` to wire up gated behavior end-to-end.
 
 ---
 
@@ -402,24 +403,25 @@ Failed**.
 
 ## Example Transactions
 
-> Rows 1–2 are real Testnet transactions confirmed against the deployed
-> contract. Rows 3–10 are illustrative examples of the operation types the
-> contracts support — not real hashes — included to show the full
-> transaction surface. See [Demo instructions](#demo-instructions) to
-> generate real ones for any row.
+> All 10 rows are real Testnet transactions, submitted via the `stellar
+> contract invoke` CLI against the deployed `GovernanceContract`
+> (`CADQY6...SDIU`) and a freshly-deployed `MembershipContract`
+> (`CAEIHT...ZUEV`, deployed solely to demonstrate `join`/`is_member` — the
+> live frontend's default config runs ungated, see the [note
+> below](#-membership-authorization)).
 
 | # | Operation | Proposal ID | Status | Explorer |
 |---|---|---|---|---|
-| 1 | `create_proposal` | — | ✅ Confirmed | [`210388aa...`](https://stellar.expert/explorer/testnet/tx/210388aa03524f08885e9d0e4b256b1589df97f6e2d894bc5870204d400e546b) |
-| 2 | `vote` | — | ✅ Confirmed | [`0b42c7cc...`](https://stellar.expert/explorer/testnet/tx/0b42c7ccbeecfcbe54241f4e7ca1c066aebb5c574c51045afaf598547f38b89b) |
-| 3 | `join` (membership) | — | ⚪ illustrative | — |
-| 4 | `create_proposal` | — | ⚪ illustrative | — |
-| 5 | `vote` (Yes) | — | ⚪ illustrative | — |
-| 6 | `vote` (No) | — | ⚪ illustrative | — |
-| 7 | `has_voted` (read-only) | — | ⚪ illustrative | — |
-| 8 | `get_proposal` (read-only) | — | ⚪ illustrative | — |
-| 9 | `execute_proposal` | — | ⚪ illustrative | — |
-| 10 | `get_all_proposals` (read-only) | — | ⚪ illustrative | — |
+| 1 | `create_proposal` | 0 | ✅ Confirmed | [`210388aa...`](https://stellar.expert/explorer/testnet/tx/210388aa03524f08885e9d0e4b256b1589df97f6e2d894bc5870204d400e546b) |
+| 2 | `vote` (No) | 1 | ✅ Confirmed | [`0b42c7cc...`](https://stellar.expert/explorer/testnet/tx/0b42c7ccbeecfcbe54241f4e7ca1c066aebb5c574c51045afaf598547f38b89b) |
+| 3 | `join` (membership) | — | ✅ Confirmed | [`f56cc5d2...`](https://stellar.expert/explorer/testnet/tx/f56cc5d2c998dab9227e4fef0d3aa546c141082f3c3a67c63979fe9b93ca9abc) |
+| 4 | `create_proposal` | 2 | ✅ Confirmed | [`f723c41a...`](https://stellar.expert/explorer/testnet/tx/f723c41a16aa71e5e403c03a6600b0f72d1b670f56c161424a03ab7c1603f916) |
+| 5 | `vote` (Yes) | 2 | ✅ Confirmed | [`0a389d20...`](https://stellar.expert/explorer/testnet/tx/0a389d200a26207fd6f48c08c392922f73554d4a37e524dc3be6e94c1522d51c) |
+| 6 | `vote` (No) | 2 | ✅ Confirmed | [`236c6795...`](https://stellar.expert/explorer/testnet/tx/236c6795bccb76d68598b311af6dba13ca15103f7e7b6d1ec618eac5199f8760) |
+| 7 | `has_voted` (read-only) | 2 | ✅ Confirmed | [`29716558...`](https://stellar.expert/explorer/testnet/tx/2971655846f26ed02bd8e07c6a62d006e110eb8f5f73484a85dd9d2d36ee2569) |
+| 8 | `get_proposal` (read-only) | 2 | ✅ Confirmed | [`ba074425...`](https://stellar.expert/explorer/testnet/tx/ba074425412141558519f76c66543f60febbf0e2ec31afa0f652dc871bea8f53) |
+| 9 | `execute_proposal` | 2 | ✅ Confirmed | [`d5758a0f...`](https://stellar.expert/explorer/testnet/tx/d5758a0fa69906846056effb8175814fce1a7a032beb66ecda802c226805fa80) |
+| 10 | `get_all_proposals` (read-only) | — | ✅ Confirmed | [`e64922c1...`](https://stellar.expert/explorer/testnet/tx/e64922c10f0ff91181a4f4314fb2c755524220b8489681da94277ffec17cd3c5) |
 
 ---
 
