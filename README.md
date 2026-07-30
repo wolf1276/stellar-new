@@ -221,12 +221,6 @@ Both `/proposals` and `/proposals/[id]` render this **Connect Wallet** gate
 before showing any content — proposal data and voting are only fetched once
 a wallet is connected.
 
-| Section | Status |
-|---|---|
-| Proposal list (populated) | 🖼️ *placeholder — needs a connected wallet + on-chain proposals to capture* |
-| Proposal detail / voting | 🖼️ *placeholder — needs a connected wallet + on-chain proposals to capture* |
-| Mobile view | 🖼️ *placeholder — add screenshot* |
-
 ---
 
 ## Live Demo
@@ -235,7 +229,6 @@ a wallet is connected.
 |---|---|
 | **Website** | https://stellar4.vercel.app |
 | **Repository** | this repo |
-| **Video demo** | Not recorded yet |
 | **Voting contract** (live, used by the deployed frontend) | `CADQY6OJA3PZOPWIHHTJ7T67LFJJPLDDFE2UYDPJWPQVXONXM7JRSDIU` ([explorer](https://stellar.expert/explorer/testnet/contract/CADQY6OJA3PZOPWIHHTJ7T67LFJJPLDDFE2UYDPJWPQVXONXM7JRSDIU)) |
 | **Membership contract** (deployed for the transaction examples below, not wired to the live frontend) | `CAEIHTZGHQOXODAHRQA4AKDAQROP53EYFEA2GTUWTGZE4CU4COPOZUEV` ([explorer](https://stellar.expert/explorer/testnet/contract/CAEIHTZGHQOXODAHRQA4AKDAQROP53EYFEA2GTUWTGZE4CU4COPOZUEV)) |
 | **Example transactions** | see [Example Transactions](#example-transactions) — all 10 rows are real, confirmed Testnet transactions |
@@ -511,32 +504,6 @@ as a CI secret is out of scope for a testnet demo.
    cast a vote (or connect a second funded testnet account and vote from
    there) — tallies update within 6s on both without a refresh.
 5. After the deadline, click **Execute** to finalize the proposal.
-
-## Submission Assets
-
-Captured (see [Screenshots](#screenshots) above): landing page, wallet-connect
-gate. Still to capture — all require an actual connected wallet with a funded
-testnet account, so they can't be automated headlessly:
-
-1. Wallet picker — the Stellar Wallet Kit modal with multiple wallet options.
-2. Connected state — nav bar showing truncated wallet address.
-3. Proposal detail — vote panel with live Yes/No results.
-4. Vote lifecycle mid-flow (e.g. "Awaiting signature...").
-5. Confirmed vote — tx hash + Stellar Expert link visible in the UI.
-
----
-
-## Roadmap
-
-- [x] Multi-wallet connect via Stellar Wallet Kit
-- [x] Live XLM balance + send flow
-- [x] On-chain proposal creation, voting, execution
-- [x] Cross-contract membership gate
-- [x] 6s live polling for proposals
-- [ ] Gated (non-open) membership — admin or token-balance based
-- [ ] Indexed on-chain event history → real [Project Stats](#project-stats)
-- [ ] Screenshots / demo video
-- [ ] Mainnet deployment
 
 ---
 
