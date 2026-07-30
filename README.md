@@ -239,7 +239,7 @@ Once connected, `/proposals` lists every on-chain proposal
 | **Repository** | this repo |
 | **Voting contract** (live, used by the deployed frontend) | `CADQY6OJA3PZOPWIHHTJ7T67LFJJPLDDFE2UYDPJWPQVXONXM7JRSDIU` ([explorer](https://stellar.expert/explorer/testnet/contract/CADQY6OJA3PZOPWIHHTJ7T67LFJJPLDDFE2UYDPJWPQVXONXM7JRSDIU)) |
 | **Membership contract** (deployed for the transaction examples below, not wired to the live frontend) | `CAEIHTZGHQOXODAHRQA4AKDAQROP53EYFEA2GTUWTGZE4CU4COPOZUEV` ([explorer](https://stellar.expert/explorer/testnet/contract/CAEIHTZGHQOXODAHRQA4AKDAQROP53EYFEA2GTUWTGZE4CU4COPOZUEV)) |
-| **Example transactions** | see [Example Transactions](#example-transactions) — all 10 rows are real, confirmed Testnet transactions |
+| **Example transactions** | see [Testnet Transactions](#testnet-transactions) — all 10 rows are real, confirmed Testnet transactions |
 
 > ⚠️ The live voting contract instance predates the membership
 > cross-contract check (deployed with no constructor arg), so it currently
@@ -402,7 +402,7 @@ Failed**.
 
 ---
 
-## Example Transactions
+## Testnet Transactions
 
 > All 10 rows are real Testnet transactions, submitted via the `stellar
 > contract invoke` CLI against the deployed `GovernanceContract`
