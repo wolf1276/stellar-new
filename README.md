@@ -402,14 +402,24 @@ Failed**.
 
 ## Example Transactions
 
-> Real Testnet transactions confirmed against the deployed contract. More
-> will be added here as activity accrues — see
-> [Demo instructions](#demo-instructions) to generate your own.
+> Rows 1–2 are real Testnet transactions confirmed against the deployed
+> contract. Rows 3–10 are illustrative examples of the operation types the
+> contracts support — not real hashes — included to show the full
+> transaction surface. See [Demo instructions](#demo-instructions) to
+> generate real ones for any row.
 
 | # | Operation | Proposal ID | Status | Explorer |
 |---|---|---|---|---|
 | 1 | `create_proposal` | — | ✅ Confirmed | [`210388aa...`](https://stellar.expert/explorer/testnet/tx/210388aa03524f08885e9d0e4b256b1589df97f6e2d894bc5870204d400e546b) |
 | 2 | `vote` | — | ✅ Confirmed | [`0b42c7cc...`](https://stellar.expert/explorer/testnet/tx/0b42c7ccbeecfcbe54241f4e7ca1c066aebb5c574c51045afaf598547f38b89b) |
+| 3 | `join` (membership) | — | ⚪ illustrative | — |
+| 4 | `create_proposal` | — | ⚪ illustrative | — |
+| 5 | `vote` (Yes) | — | ⚪ illustrative | — |
+| 6 | `vote` (No) | — | ⚪ illustrative | — |
+| 7 | `has_voted` (read-only) | — | ⚪ illustrative | — |
+| 8 | `get_proposal` (read-only) | — | ⚪ illustrative | — |
+| 9 | `execute_proposal` | — | ⚪ illustrative | — |
+| 10 | `get_all_proposals` (read-only) | — | ⚪ illustrative | — |
 
 ---
 
